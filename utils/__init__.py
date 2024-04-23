@@ -33,4 +33,3 @@ def normalize(url):
     if url.endswith("/"):
         return url.rstrip("/")
     return url
-e
