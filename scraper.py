@@ -1,5 +1,6 @@
 import re
-from urllib.parse import urlparse
+from html.parser import HTMLParser
+from urllib.parse import urlparse, urljoin, urldefrag
 import utils
 
 
@@ -7,21 +8,37 @@ def scraper (url: str, resp: utils.response.Response):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
-def extract_next_links(url, resp):
-    # Implementation required.
-    # url: the URL that was used to get the page
-    # resp.url: the actual url of the page
-    # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
-    # resp.error: when status is not 200, you can check the error here, if needed.
-    # resp.raw_response: this is where the page actually is. More specifically, the raw_response has two parts:
-    #         resp.raw_response.url: the url, again
-    #         resp.raw_response.content: the content of the page!
-    # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
 
+
+def extract_next_links(url, resp):
+    # List to hold the extracted URLs
+    extracted_urls = []
+
+    # Use Python's built-in HTMLParser to parse the content
+    parser = HTMLParser()
+
+    # Function to handle starttag event
+    def handle_starttag(tag, attrs):
+        if tag == 'a':
+            for attr in attrs:
+                if attr[0] == 'href':
+                    # Make the URL absolute by joining it with the base URL
+                    abs_url = urljoin(url, attr[1])
+                    # Defragment the URL
+                    defragmented_url, _ = urldefrag(abs_url)
+                    extracted_urls.append(defragmented_url)
+
+    # Assign the handle_starttag function to the parser's starttag event handler
+    parser.handle_starttag = handle_starttag
+
+    # Decode the response content and feed it to the parser
+    html_content = resp.raw_response.content.decode('utf-8', errors='ignore')
+    parser.feed(html_content)
+
+    return extracted_urls
 def is_valid(url):
     # Decide whether to crawl this url or not. 
-    # If you decidae to crawl it, return True; otherwise return False.
+    # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
