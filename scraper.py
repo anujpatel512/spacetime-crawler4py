@@ -139,3 +139,8 @@ def is_content_duplicate(url, html_content):
 def make_absolute(base_url, link):
     """Convert a relative URL link to an absolute URL based on the base URL."""
     return urljoin(base_url, link)
+
+def is_valid(url):
+    parsed_url = urlparse(url)
+    return parsed_url.scheme in ('http', 'https') and \
+        'ics.uci.edu' in parsed_url.netloc
