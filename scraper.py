@@ -30,3 +30,4 @@ def is_valid(url):
     parsed_url = urlparse(url)
     return parsed_url.scheme in ('http', 'https') and \
         'ics.uci.edu' in parsed_url.netloc
+#hi
